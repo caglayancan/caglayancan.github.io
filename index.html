@@ -7,12 +7,12 @@
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
     body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f3f4f6;padding:24px}
-    .card{width:100%;max-width:640px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
+    .card{width:100%;max-width:720px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
     h1{margin:0 0 6px;font-size:20px}
     p.lead{margin:0 0 18px;color:#4b5563}
     .field{display:flex;flex-direction:column;margin-bottom:8px}
     label{font-size:13px;margin-bottom:6px;color:#374151}
-    input[type=text], input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid #e5e7eb;font-size:14px}
+    input[type=text], input[type=number]{padding:6px 8px;border-radius:6px;border:1px solid #e5e7eb;font-size:13px;width:100%}
     input.invalid{border-color:#ef4444;background:#fff1f2}
     .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
     button{padding:10px 14px;border-radius:10px;border:0;background:#111827;color:white;cursor:pointer}
@@ -21,6 +21,8 @@
     table{border-collapse:collapse;width:100%;margin-top:8px}
     th,td{border:1px solid #e5e7eb;padding:6px 10px;text-align:left;font-size:14px}
     th{background:#f9fafb}
+    .inputs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+    .inputs-grid .field{flex-direction:column;margin-bottom:0}
   </style>
 </head>
 <body>
@@ -34,7 +36,7 @@
         <input type="number" id="outputCount" value="20" min="1" max="500">
       </div>
 
-      <div id="inputs"></div>
+      <div id="inputs" class="inputs-grid"></div>
 
       <div class="controls">
         <button id="calcBtn">Hesapla</button>
