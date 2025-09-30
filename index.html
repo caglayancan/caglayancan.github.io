@@ -1,0 +1,148 @@
+<!--
+  index.html
+  - Tek dosyalık GitHub Pages sitesi (username.github.io)
+  - İçinde 12 adet sayı girişi, "Hesapla" düğmesi ve sonuç gösterimi bulunur.
+  Yayınlama: yeni bir repo oluşturun adı: <kullaniciadi>.github.io içine bu index.html'i koyup push edin.
+-->
+
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>12 Sayı Hesaplayıcı</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
+    body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f3f4f6;padding:24px}
+    .card{width:100%;max-width:820px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
+    h1{margin:0 0 6px;font-size:20px}
+    p.lead{margin:0 0 18px;color:#4b5563}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+    input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid #e5e7eb;font-size:14px}
+    input.invalid{border-color:#ef4444;background:#fff1f2}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    button{padding:10px 14px;border-radius:10px;border:0;background:#111827;color:white;cursor:pointer}
+    button.secondary{background:#e5e7eb;color:#111827}
+    .result{background:#f9fafb;border:1px dashed #e6eef8;padding:14px;border-radius:10px;white-space:pre-wrap}
+    .note{font-size:13px;color:#6b7280;margin-top:10px}
+    footer{font-size:13px;color:#6b7280;margin-top:14px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>12 Sayı Hesaplayıcı</h1>
+    <p class="lead">12 kutucuğa sayı girin. Virgül (,) veya nokta (.) ile ondalık yazabilirsiniz. "Hesapla"ya bastığınızda sonuç mesajı gösterilecek.</p>
+
+    <form id="numbersForm" onsubmit="return false;">
+      <div class="grid" id="inputs">
+        <!-- 12 input otomatik olarak JS ile oluşturulacak -->
+      </div>
+
+      <div class="controls">
+        <button id="calcBtn">Hesapla</button>
+        <button id="clearBtn" class="secondary" type="button">Temizle</button>
+        <button id="copyBtn" class="secondary" type="button">Sonucu Kopyala</button>
+      </div>
+
+      <div class="result" id="result" aria-live="polite">Henüz hesaplanmadı.</div>
+      <div class="note">Boş bırakılan kutucuk varsa hata verir. Tüm kutucuklar sayı içermelidir.</div>
+      <footer>Hazırlandı — GitHub Pages dostu (kopyala-yapıştır: <code>index.html</code>)</footer>
+    </form>
+  </main>
+
+  <script>
+    // Inputları oluştur
+    const inputsEl = document.getElementById('inputs');
+    for (let i = 0; i < 12; i++) {
+      const wrapper = document.createElement('div');
+      const input = document.createElement('input');
+      input.type = 'text'; // text alıyoruz ki hem "," hem "." kabul edilsin
+      input.placeholder = `Sayı ${i+1}`;
+      input.dataset.index = i;
+      wrapper.appendChild(input);
+      inputsEl.appendChild(wrapper);
+    }
+
+    const resultEl = document.getElementById('result');
+    const calcBtn = document.getElementById('calcBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function parseNumberRaw(raw) {
+      if (raw === null) return NaN;
+      raw = raw.toString().trim();
+      if (raw === '') return NaN;
+      // Türkçe kullanıcılar için virgül destekle (örn: 3,14)
+      raw = raw.replace(',', '.');
+      const v = Number(raw);
+      return Number.isFinite(v) ? v : NaN;
+    }
+
+    function compute(numbers) {
+      const n = numbers.length;
+      const sum = numbers.reduce((a,b)=>a+b,0);
+      const avg = sum/n;
+      const min = Math.min(...numbers);
+      const max = Math.max(...numbers);
+      const sorted = [...numbers].sort((a,b)=>a-b);
+      const median = (n%2===1) ? sorted[(n-1)/2] : (sorted[n/2-1]+sorted[n/2])/2;
+      return {sum, avg, min, max, median, sorted};
+    }
+
+    function formatNumber(x) {
+      // Gerektiğinde ondalık basamakları kısalt
+      if (Number.isInteger(x)) return String(x);
+      return parseFloat(x.toFixed(6)).toString();
+    }
+
+    calcBtn.addEventListener('click', ()=>{
+      const inputs = Array.from(document.querySelectorAll('#inputs input'));
+      const values = [];
+      let anyInvalid = false;
+      inputs.forEach(inp=>inp.classList.remove('invalid'));
+
+      inputs.forEach((inp, idx)=>{
+        const raw = inp.value;
+        const v = parseNumberRaw(raw);
+        if (Number.isNaN(v)) {
+          inp.classList.add('invalid');
+          anyInvalid = true;
+        } else {
+          values.push(v);
+        }
+      });
+
+      if (anyInvalid) {
+        resultEl.textContent = 'Lütfen tüm 12 kutucuğa geçerli sayılar girin.';
+        return;
+      }
+
+      const {sum, avg, min, max, median, sorted} = compute(values);
+      const msg = `Girdiğiniz sayılar: ${values.map(formatNumber).join(', ')}\n\n` +
+                  `Toplam: ${formatNumber(sum)}\n` +
+                  `Ortalama: ${formatNumber(avg)}\n` +
+                  `En küçük: ${formatNumber(min)}\n` +
+                  `En büyük: ${formatNumber(max)}\n` +
+                  `Medyan: ${formatNumber(median)}\n` +
+                  `Sıralı hali: ${sorted.map(formatNumber).join(', ')}`;
+
+      resultEl.textContent = msg;
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      document.querySelectorAll('#inputs input').forEach(i=>{ i.value=''; i.classList.remove('invalid'); });
+      resultEl.textContent = 'Henüz hesaplanmadı.';
+    });
+
+    copyBtn.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(resultEl.textContent);
+        copyBtn.textContent = 'Kopyalandı!';
+        setTimeout(()=>copyBtn.textContent = 'Sonucu Kopyala', 1400);
+      } catch (e) {
+        alert('Tarayıcı panoya kopyalamaya izin vermedi. Manuel olarak seçip kopyalayın.');
+      }
+    });
+  </script>
+</body>
+</html>
