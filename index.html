@@ -18,7 +18,9 @@
     button{padding:10px 14px;border-radius:10px;border:0;background:#111827;color:white;cursor:pointer}
     button.secondary{background:#e5e7eb;color:#111827}
     .neighbors{margin-top:12px}
-    .neighbors ol{padding-left:18px;margin:0}
+    table{border-collapse:collapse;width:100%;margin-top:8px}
+    th,td{border:1px solid #e5e7eb;padding:6px 10px;text-align:left;font-size:14px}
+    th{background:#f9fafb}
   </style>
 </head>
 <body>
@@ -138,8 +140,14 @@
       }));
       results.sort((a,b)=>a.distance-b.distance);
 
-      neighborsEl.innerHTML = '<strong>En yakın 20</strong>' +
-        '<ol>' + results.slice(0,20).map(item => `<li>${item.name} — distance: ${item.distance.toFixed(6)}</li>`).join('') + '</ol>';
+      let html = '<strong>En yakın 20</strong>';
+      html += '<table><thead><tr><th>Popülasyon</th><th>Mesafe</th></tr></thead><tbody>';
+      results.slice(0,20).forEach(item => {
+        html += `<tr><td>${item.name}</td><td>${item.distance.toFixed(6)}</td></tr>`;
+      });
+      html += '</tbody></table>';
+
+      neighborsEl.innerHTML = html;
     });
 
     clearBtn.addEventListener('click', ()=>{
