@@ -166,7 +166,8 @@
         const raw = inp.value;
         const v = parseNumberRaw(raw);
         
-        if (Number.isNaN(v)) {
+        // 0-100 aralığı kontrolü
+        if (Number.isNaN(v) || v < 0 || v > 100) {
           inp.classList.add('invalid');
           isValid = false;
         } else {
@@ -186,7 +187,7 @@
 
     calcBtn.addEventListener('click', async ()=>{
       if (!validateInputs()) {
-        neighborsEl.innerHTML = '<div style="color:#b91c1c">Lütfen tüm 12 kutucuğa geçerli sayılar girin.</div>';
+        neighborsEl.innerHTML = '<div style="color:#b91c1c">Lütfen tüm 12 kutucuğa 0-100 arasında geçerli sayılar girin.</div>';
         return;
       }
 
