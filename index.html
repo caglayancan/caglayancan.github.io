@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>En Yakın Popülasyonlar</title>
+  <title>En Yakın Popülasyonlarr</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
     body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f3f4f6;padding:24px}
-    .card{width:100%;max-width:720px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
+    .card{width:100%;max-width:900px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
     h1{margin:0 0 6px;font-size:20px}
     p.lead{margin:0 0 18px;color:#4b5563}
     .field{display:flex;flex-direction:column;margin-bottom:8px}
@@ -22,10 +22,16 @@
     table{border-collapse:collapse;width:100%;margin-top:8px}
     th,td{border:1px solid #e5e7eb;padding:6px 10px;text-align:left;font-size:14px}
     th{background:#f9fafb}
-    .inputs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+    .inputs-grid{display:grid;grid-template-columns:repeat(12, 1fr);gap:8px}
     .inputs-grid .field{flex-direction:column;margin-bottom:0}
     
     /* Responsive tasarım */
+    @media (max-width: 1200px) {
+      .inputs-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
     @media (max-width: 768px) {
       .card {
         padding: 16px;
@@ -33,7 +39,7 @@
       }
       
       .inputs-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
       
       table {
@@ -47,7 +53,7 @@
 
     @media (max-width: 480px) {
       .inputs-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
       }
       
       .controls {
@@ -66,7 +72,7 @@
     <p class="lead">12 kutucuğa değer girin ve "Hesapla" tuşuna basın. Program sizin değerlerinize göre <strong>Dodecad_k12b_Averages.txt</strong> içindeki popülasyonlara öklid mesafesini hesaplayacak ve en yakın sonuçları gösterecek.</p>
 
     <form id="numbersForm" onsubmit="return false;">
-      <div class="field">
+      <div class="field" style="max-width: 150px;">
         <label for="outputCount">Çıktı sayısı</label>
         <input type="number" id="outputCount" value="20" min="1" max="500">
       </div>
@@ -103,14 +109,10 @@
     const calcBtn = document.getElementById('calcBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // Input alanlarını oluştur
+    // Input alanlarını oluştur (sadece placeholder, label yok)
     labels.forEach((labelText, i) => {
       const field = document.createElement('div');
       field.className = 'field';
-
-      const label = document.createElement('label');
-      label.textContent = labelText;
-      label.setAttribute('for', `input-${i}`);
 
       const input = document.createElement('input');
       input.type = 'text';
@@ -118,7 +120,6 @@
       input.id = `input-${i}`;
       input.dataset.index = i;
 
-      field.appendChild(label);
       field.appendChild(input);
       inputsEl.appendChild(field);
     });
