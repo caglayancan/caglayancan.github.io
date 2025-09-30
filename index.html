@@ -16,6 +16,7 @@
     input.invalid{border-color:#ef4444;background:#fff1f2}
     .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
     button{padding:10px 14px;border-radius:10px;border:0;background:#111827;color:white;cursor:pointer}
+    button:disabled{background:#9ca3af;cursor:not-allowed}
     button.secondary{background:#e5e7eb;color:#111827}
     .neighbors{margin-top:12px}
     table{border-collapse:collapse;width:100%;margin-top:8px}
@@ -23,6 +24,40 @@
     th{background:#f9fafb}
     .inputs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
     .inputs-grid .field{flex-direction:column;margin-bottom:0}
+    
+    /* Responsive tasarım */
+    @media (max-width: 768px) {
+      .card {
+        padding: 16px;
+        margin: 16px;
+      }
+      
+      .inputs-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 4px 6px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .inputs-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -64,6 +99,11 @@
     ];
 
     const inputsEl = document.getElementById('inputs');
+    const neighborsEl = document.getElementById('neighbors');
+    const calcBtn = document.getElementById('calcBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // Input alanlarını oluştur
     labels.forEach((labelText, i) => {
       const field = document.createElement('div');
       field.className = 'field';
@@ -83,10 +123,6 @@
       inputsEl.appendChild(field);
     });
 
-    const neighborsEl = document.getElementById('neighbors');
-    const calcBtn = document.getElementById('calcBtn');
-    const clearBtn = document.getElementById('clearBtn');
-
     function parseNumberRaw(raw) {
       if (raw === null) return NaN;
       raw = raw.toString().trim();
@@ -103,67 +139,147 @@
     }
 
     async function loadDataset() {
-      const res = await fetch('Dodecad_k12b_Averages.txt');
-      const text = await res.text();
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
-      return lines.map(line => {
-        const parts = line.split(',').map(s=>s.trim());
-        const name = parts[0];
-        const nums = parts.slice(1).map(s=>parseFloat(s));
-        return { name, vector: nums };
+      try {
+        const res = await fetch('Dodecad_k12b_Averages.txt');
+        if (!res.ok) throw new Error(`Dosya yüklenemedi: ${res.status}`);
+        const text = await res.text();
+        const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+        return lines.map(line => {
+          const parts = line.split(',').map(s=>s.trim());
+          const name = parts[0];
+          const nums = parts.slice(1).map(s=>parseFloat(s));
+          return { name, vector: nums };
+        });
+      } catch (error) {
+        console.error('Veri seti yüklenirken hata:', error);
+        neighborsEl.innerHTML = `<div style="color:#b91c1c">Veri seti yüklenirken hata oluştu: ${error.message}</div>`;
+        return [];
+      }
+    }
+
+    function validateInputs() {
+      const inputs = Array.from(document.querySelectorAll('#inputs input'));
+      let isValid = true;
+      let total = 0;
+      
+      inputs.forEach(inp => {
+        inp.classList.remove('invalid');
+        const raw = inp.value;
+        const v = parseNumberRaw(raw);
+        
+        if (Number.isNaN(v)) {
+          inp.classList.add('invalid');
+          isValid = false;
+        } else {
+          total += v;
+        }
       });
+      
+      // Toplam %100'e yakın mı kontrol et
+      if (isValid && Math.abs(total - 100) > 1) {
+        neighborsEl.innerHTML = `<div style="color:#ca8a04">Uyarı: Değerlerin toplamı %${total.toFixed(2)}. Genellikle %100'e yakın olmalı.</div>`;
+      }
+      
+      return isValid;
     }
 
     let datasetPromise = null;
 
     calcBtn.addEventListener('click', async ()=>{
-      const inputs = Array.from(document.querySelectorAll('#inputs input'));
-      const values = [];
-      let anyInvalid = false;
-      inputs.forEach(inp=>inp.classList.remove('invalid'));
-
-      inputs.forEach((inp)=>{
-        const raw = inp.value;
-        const v = parseNumberRaw(raw);
-        if (Number.isNaN(v)) {
-          inp.classList.add('invalid');
-          anyInvalid = true;
-        } else {
-          values.push(v);
-        }
-      });
-
-      if (anyInvalid) {
+      if (!validateInputs()) {
         neighborsEl.innerHTML = '<div style="color:#b91c1c">Lütfen tüm 12 kutucuğa geçerli sayılar girin.</div>';
         return;
       }
 
       const outputCount = parseInt(document.getElementById('outputCount').value, 10) || 20;
 
-      if (!datasetPromise) datasetPromise = loadDataset();
-      const dataset = await datasetPromise;
+      // Yükleme durumu
+      calcBtn.disabled = true;
+      calcBtn.textContent = 'Hesaplanıyor...';
+      
+      try {
+        if (!datasetPromise) datasetPromise = loadDataset();
+        const dataset = await datasetPromise;
 
-      const results = dataset.map(row => ({
-        name: row.name,
-        distance: euclidean(values, row.vector)
-      }));
-      results.sort((a,b)=>a.distance-b.distance);
+        if (dataset.length === 0) {
+          neighborsEl.innerHTML = '<div style="color:#b91c1c">Veri seti yüklenemedi veya boş.</div>';
+          return;
+        }
 
-      let html = `<strong>En yakın ${outputCount}</strong>`;
-      html += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>Mesafe</th></tr></thead><tbody>';
-      results.slice(0,outputCount).forEach((item, idx) => {
-        html += `<tr><td>${idx+1}</td><td>${item.name}</td><td>${item.distance.toFixed(6)}</td></tr>`;
-      });
-      html += '</tbody></table>';
+        const inputs = Array.from(document.querySelectorAll('#inputs input'));
+        const values = inputs.map(inp => parseNumberRaw(inp.value));
 
-      neighborsEl.innerHTML = html;
+        const results = dataset.map(row => ({
+          name: row.name,
+          distance: euclidean(values, row.vector)
+        }));
+        results.sort((a,b)=>a.distance-b.distance);
+
+        let html = `<strong>En yakın ${outputCount}</strong>`;
+        html += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>Mesafe</th></tr></thead><tbody>';
+        results.slice(0,outputCount).forEach((item, idx) => {
+          html += `<tr><td>${idx+1}</td><td>${item.name}</td><td>${item.distance.toFixed(6)}</td></tr>`;
+        });
+        html += '</tbody></table>';
+
+        neighborsEl.innerHTML = html;
+
+        // Girilen değerleri kaydet
+        saveInputs();
+        
+      } catch (error) {
+        neighborsEl.innerHTML = `<div style="color:#b91c1c">Hesaplama sırasında hata: ${error.message}</div>`;
+      } finally {
+        calcBtn.disabled = false;
+        calcBtn.textContent = 'Hesapla';
+      }
     });
 
     clearBtn.addEventListener('click', ()=>{
       document.querySelectorAll('#inputs input').forEach(i=>{ i.value=''; i.classList.remove('invalid'); });
       document.getElementById('outputCount').value = 20;
       neighborsEl.innerHTML = '';
+      localStorage.removeItem('dodecadInputs');
     });
+
+    // LocalStorage ile veri saklama
+    function saveInputs() {
+      const inputs = Array.from(document.querySelectorAll('#inputs input'));
+      const values = inputs.map(input => input.value);
+      localStorage.setItem('dodecadInputs', JSON.stringify(values));
+    }
+
+    function loadSavedInputs() {
+      const saved = localStorage.getItem('dodecadInputs');
+      if (saved) {
+        try {
+          const values = JSON.parse(saved);
+          const inputs = Array.from(document.querySelectorAll('#inputs input'));
+          inputs.forEach((input, index) => {
+            if (values[index]) input.value = values[index];
+          });
+        } catch (e) {
+          console.error('Kayıtlı veriler yüklenirken hata:', e);
+        }
+      }
+    }
+
+    // Klavye desteği
+    inputsEl.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        calcBtn.click();
+      }
+    });
+
+    // Input değişikliklerinde otomatik validasyon
+    document.querySelectorAll('#inputs input').forEach(input => {
+      input.addEventListener('input', () => {
+        input.classList.remove('invalid');
+      });
+    });
+
+    // Sayfa yüklendiğinde kayıtlı verileri yükle
+    document.addEventListener('DOMContentLoaded', loadSavedInputs);
   </script>
 </body>
 </html>
