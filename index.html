@@ -7,7 +7,7 @@
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
     body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f3f4f6;padding:24px}
-    .card{width:100%;max-width:1100px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
+    .card{width:100%;max-width:900px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
     h1{margin:0 0 6px;font-size:20px}
     p.lead{margin:0 0 18px;color:#4b5563}
     .field{display:flex;flex-direction:column;margin-bottom:8px}
@@ -23,28 +23,11 @@
     th,td{border:1px solid #e5e7eb;padding:6px 10px;text-align:left;font-size:14px}
     th{background:#f9fafb}
     
-    /* Kutucuk boyutları isim uzunluklarına göre */
-    .inputs-grid{display:grid;grid-template-columns:90px 80px 130px 130px 110px 120px 110px 110px 130px 100px 100px 110px;gap:8px}
+    /* 2 satır × 6 sütun grid */
+    .inputs-grid{display:grid;grid-template-columns:repeat(6, 1fr);grid-template-rows:repeat(2, auto);gap:12px}
     .inputs-grid .field{flex-direction:column;margin-bottom:0}
     
     /* Responsive tasarım */
-    @media (max-width: 1200px) {
-      .card {
-        max-width: 95%;
-      }
-      .inputs-grid {
-        grid-template-columns: repeat(6, 1fr);
-        grid-template-rows: repeat(2, auto);
-      }
-    }
-
-    @media (max-width: 900px) {
-      .inputs-grid {
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(3, auto);
-      }
-    }
-
     @media (max-width: 768px) {
       .card {
         padding: 16px;
@@ -84,7 +67,7 @@
 <body>
   <main class="card">
     <h1>En Yakın Popülasyonlar</h1>
-    <p class="lead">12 kutucuğa değer girin ve "Hesapla" tuşuna basın. Program sizin değerlerinize göre <strong>Dodecad_k12b_Averages.txt</strong> içindeki popülasyonlara öklid mesafesini hesaplayacak ve en yakın sonuçları gösterecek.</p>
+    <p class="lead">Dodecad-k12b değerlerini ilgili kutucuklara girin ve "Hesapla" tuşuna basın. Program güncel popülasyon ortalamalarına göre en yakın sonuçları gösterecek.</p>
 
     <form id="numbersForm" onsubmit="return false;">
       <div class="field" style="max-width: 150px;">
