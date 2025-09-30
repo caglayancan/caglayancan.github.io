@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>En Yakın 20 Popülasyon</title>
+  <title>En Yakın 20 Popülasyon — Test</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
     body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f3f4f6;padding:24px}
-    .card{width:100%;max-width:640px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
+    .card{width:100%;max-width:720px;background:white;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.08);padding:24px}
     h1{margin:0 0 6px;font-size:20px}
     p.lead{margin:0 0 18px;color:#4b5563}
     .field{display:flex;flex-direction:column;margin-bottom:8px}
@@ -19,12 +19,14 @@
     button.secondary{background:#e5e7eb;color:#111827}
     .neighbors{margin-top:12px}
     .neighbors ol{padding-left:18px;margin:0}
+    pre.debug{background:#0f172a;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto;max-height:260px}
+    .note{font-size:13px;color:#6b7280;margin-top:10px}
   </style>
 </head>
 <body>
   <main class="card">
-    <h1>En Yakın 20 Popülasyon</h1>
-    <p class="lead">12 kutucuğa değer girin ve "Hesapla" tuşuna basın. Program sizin değerlerinize göre <strong>Dodecad_k12b_Averages.txt</strong> içindeki popülasyonlara öklid mesafesini hesaplayacak ve en yakın 20 sonucu gösterecek.</p>
+    <h1>En Yakın 20 Popülasyon — Test</h1>
+    <p class="lead">12 kutucuğa değer girin ve "Hesapla" ile en yakın 20'yi bulun. Aşağıdaki <strong>Dosyayı Test Et</strong> düğmesi, sunucudaki <code>Dodecad_k12b_Averages.txt</code> dosyasını okuyup parse edip ilk kayıtları ve olası hataları gösterecek — böylece dosyanın doğru yerde ve formatta olup olmadığını hızlıca kontrol edebilirsiniz.</p>
 
     <form id="numbersForm" onsubmit="return false;">
       <div id="inputs"></div>
@@ -32,9 +34,14 @@
       <div class="controls">
         <button id="calcBtn">Hesapla</button>
         <button id="clearBtn" class="secondary" type="button">Temizle</button>
+        <button id="testBtn" class="secondary" type="button">Dosyayı Test Et</button>
       </div>
 
       <div class="neighbors" id="neighbors"></div>
+      <div class="note">Not: tarayıcı <code>file://</code> üzerinden açılırsa <code>fetch</code> dosyayı okuyamayabilir. Yerel test için terminalde <code>python -m http.server 8000</code> çalıştırın ve <code>http://localhost:8000/</code> adresini açın.</div>
+
+      <h3 style="margin-top:14px">Test Çıktısı</h3>
+      <pre id="debug" class="debug">Henüz test yapılmadı.</pre>
     </form>
   </main>
 
@@ -75,8 +82,10 @@
     });
 
     const neighborsEl = document.getElementById('neighbors');
+    const debugEl = document.getElementById('debug');
     const calcBtn = document.getElementById('calcBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const testBtn = document.getElementById('testBtn');
 
     function parseNumberRaw(raw) {
       if (raw === null) return NaN;
@@ -87,6 +96,12 @@
       return Number.isFinite(v) ? v : NaN;
     }
 
+    function formatNumber(x) {
+      if (Number.isInteger(x)) return String(x);
+      if (Number.isNaN(x)) return 'NaN';
+      return parseFloat(x.toFixed(6)).toString();
+    }
+
     function euclidean(a,b) {
       let s = 0;
       for (let i=0;i<12;i++){ const d = (a[i]||0) - (b[i]||0); s += d*d; }
@@ -95,17 +110,72 @@
 
     async function loadDataset() {
       const res = await fetch('Dodecad_k12b_Averages.txt');
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
       const text = await res.text();
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
-      return lines.map(line => {
+      const lines = text.split(/
+?
+/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#'));
+      const dataset = [];
+      const errors = [];
+      lines.forEach((line, idx) => {
         const parts = line.split(',').map(s=>s.trim());
-        const name = parts[0];
-        const nums = parts.slice(1).map(s=>parseFloat(s));
-        return { name, vector: nums };
+        const name = parts[0] || (`<no-name-${idx+1}>`);
+        const nums = parts.slice(1).map(s => {
+          const n = parseFloat(s.replace(',', '.'));
+          return Number.isFinite(n) ? n : NaN;
+        });
+        const nonNumeric = nums.filter(n => Number.isNaN(n)).length;
+        if (nums.length !== 12 || nonNumeric > 0) {
+          errors.push({ line: idx+1, name, cols: nums.length, nonNumeric });
+        }
+        dataset.push({ name, vector: nums });
       });
+      return { dataset, errors, linesCount: lines.length };
     }
 
     let datasetPromise = null;
+
+    testBtn.addEventListener('click', async ()=>{
+      debugEl.textContent = 'Dosya okunuyor...';
+      try {
+        if (!datasetPromise) datasetPromise = loadDataset();
+        const { dataset, errors, linesCount } = await datasetPromise;
+        let out = '';
+        out += `Deneme sonucu:
+`;
+        out += `Dosyada bulunan kayıt (satır) sayısı: ${linesCount}
+`;
+        out += `Toplam parse edilmiş kayıt sayısı: ${dataset.length}
+`;
+        out += `Hatalı/uyumsuz satır sayısı: ${errors.length}
+
+`;
+        if (errors.length) {
+          out += 'Hatalı satırlar (ilk 10):
+' + errors.slice(0,10).map(e => `Satır ${e.line}: isim=${e.name} kolSayısı=${e.cols} nonNumeric=${e.nonNumeric}`).join('
+') + '
+
+';
+        }
+        out += 'İlk 5 kayıt:
+' + dataset.slice(0,5).map(d => `${d.name}: [${d.vector.map(formatNumber).join(', ')}]`).join('
+') + '
+
+';
+        out += `Deneme için kullanılan URL: ${new URL('Dodecad_k12b_Averages.txt', location.href).href}
+`;
+        debugEl.textContent = out;
+      } catch (err) {
+        debugEl.textContent = `Dosya okunamadı: ${err.message}
+Denenen URL: ${new URL('Dodecad_k12b_Averages.txt', location.href).href}
+
+Not: Eğer sayfayı doğrudan dosya sisteminden (file://) açtıysanız, fetch() tarayıcı güvenlik kısıtlamaları nedeniyle başarısız olur. Yerel test için terminalde şu komutu çalıştırın:
+
+  python -m http.server 8000
+
+ve tarayıcıdan http://localhost:8000/ adresini açın.`;
+      }
+    });
 
     calcBtn.addEventListener('click', async ()=>{
       const inputs = Array.from(document.querySelectorAll('#inputs input'));
@@ -130,12 +200,8 @@
       }
 
       if (!datasetPromise) datasetPromise = loadDataset();
-      const dataset = await datasetPromise;
-
-      const results = dataset.map(row => ({
-        name: row.name,
-        distance: euclidean(values, row.vector)
-      }));
+      const { dataset } = await datasetPromise;
+      const results = dataset.map(row => ({ name: row.name, distance: euclidean(values, row.vector) }));
       results.sort((a,b)=>a.distance-b.distance);
 
       neighborsEl.innerHTML = '<strong>En yakın 20</strong>' +
@@ -145,6 +211,7 @@
     clearBtn.addEventListener('click', ()=>{
       document.querySelectorAll('#inputs input').forEach(i=>{ i.value=''; i.classList.remove('invalid'); });
       neighborsEl.innerHTML = '';
+      debugEl.textContent = 'Henüz test yapılmadı.';
     });
   </script>
 </body>
