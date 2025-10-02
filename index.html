@@ -278,7 +278,7 @@
         let normalHtml = `<strong>En yakın ${outputCount} (Normal)</strong>`;
         normalHtml += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>Mesafe</th></tr></thead><tbody>';
         normalResults.slice(0, outputCount).forEach((item, idx) => {
-          normalHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(6)}</td></tr>`;
+          normalHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(8)}</td></tr>`;
         });
         normalHtml += '</tbody></table>';
         neighborsEl.innerHTML = normalHtml;
@@ -286,7 +286,7 @@
         let fstHtml = `<strong>FST Sonuçları - En yakın ${outputCount}</strong>`;
         fstHtml += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>FST Mesafe</th></tr></thead><tbody>';
         fstResults.slice(0, outputCount).forEach((item, idx) => {
-          fstHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(3)}</td></tr>`;
+          fstHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(8)}</td></tr>`;
         });
         fstHtml += '</tbody></table>';
         fstResultsEl.innerHTML = fstHtml;
