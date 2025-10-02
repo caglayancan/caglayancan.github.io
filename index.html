@@ -67,7 +67,7 @@
 </head>
 <body>
   <main class="card">
-    <h1>En Yakın Popülasyonlar</h1>
+    <h1>En Yakın Popülasyonlarr</h1>
     <p class="lead">Dodecad-k12b değerlerini ilgili kutucuklara girin ve "Hesapla" tuşuna basın. Program güncel popülasyon ortalamalarına göre en yakın sonuçları gösterecek.</p>
 
     <form id="numbersForm" onsubmit="return false;">
@@ -81,7 +81,6 @@
       <div class="controls">
         <button id="calcBtn">Hesapla</button>
         <button id="clearBtn" class="secondary" type="button">Temizle</button>
-        <button id="reloadBtn" class="secondary" type="button">Verileri Yenile</button>
       </div>
 
       <div class="neighbors" id="neighbors"></div>
@@ -107,18 +106,18 @@
 
     // FST transformasyon matrisi
     const FST_TRANSFORMATION_MATRIX = [
-      [0.01048873,  0.007743  , -0.01183824, -0.02538762,  0.01382825,-0.01971983,  0.01521575,  0.01617464, -0.00297412, -0.01915227, 0.00992257,  0.01501106],
-[-0.00815924, -0.02234599,  0.00763437, -0.03070027, -0.07001091,-0.01306848,  0.01259702, -0.02399722,  0.00719069,  0.04305844, 0.02408857,  0.0209619 ],
-[-0.02134918,  0.00865377,  0.00106844,  0.00647984,  0.03401198, 0.02175552,  0.00242823,  0.01928684, -0.00415826, -0.00538686, 0.0021384 , -0.0102777 ],
-[ 0.03255612, -0.02346179,  0.01151806,  0.01013345, -0.05600267,-0.01183162,  0.03720168, -0.03496955,  0.00849757,  0.04060607,-0.00453819,  0.01200958],
-[-0.01124391, -0.00048973, -0.02331613,  0.0014097 ,  0.02444862, 0.00629537,  0.00665833,  0.04085272,  0.02589211, -0.00856372, 0.00892602,  0.01718839],
-[-0.0017736 , -0.01663471, -0.02570414, -0.00663515,  0.01400947,-0.01148814,  0.00455466,  0.0396596 , -0.00225027, -0.00211916, 0.00767346,  0.0158262 ],
-[ 0.02744786, -0.01307196, -0.00086569, -0.01732965, -0.028969  ,-0.01010476, -0.00684268,  0.00211261,  0.01853571, -0.00098844,-0.01809414, -0.02249732],
-[-0.00786016,  0.03464515,  0.01503417,  0.02854525,  0.03474362, 0.02849651, -0.05117144, -0.03552481, -0.03347181, -0.02302888,-0.01148592, -0.02255699],
-[-0.01889138, -0.00352634,  0.01225547,  0.01050122,  0.02901801,-0.01708262,  0.00175261,  0.03198801,  0.02164733, -0.02850526,-0.00204722,  0.00837268],
-[ 0.00837455, -0.02069362,  0.00296988, -0.00099411, -0.06394753,-0.01783585,  0.02700479, -0.03261083,  0.00599106,  0.03857869,-0.00876447,  0.0109065 ],
-[-0.00093434,  0.00531568, -0.01246633, -0.00167441,  0.01266372,-0.00013568,  0.01019727,  0.03119446,  0.01213548, -0.02097596, 0.0144362 ,  0.00417875],
-[-0.00865544,  0.04386654,  0.02371013,  0.02565175,  0.05620646, 0.04471957, -0.05959622, -0.05416647, -0.05703549, -0.01352266,-0.02225529, -0.04912303]
+      [ 0.01048873,  0.007743  , -0.01183824, -0.02538762,  0.01382825, -0.01971983,  0.01521575,  0.01617464, -0.00297412, -0.01915227, 0.00992257,  0.01501106],
+      [-0.00815924, -0.02234599,  0.00763437, -0.03070027, -0.07001091, -0.01306848,  0.01259702, -0.02399722,  0.00719069,  0.04305844, 0.02408857,  0.0209619 ],
+      [-0.02134918,  0.00865377,  0.00106844,  0.00647984,  0.03401198, 0.02175552,  0.00242823,  0.01928684, -0.00415826, -0.00538686, 0.0021384 , -0.0102777 ],
+      [ 0.03255612, -0.02346179,  0.01151806,  0.01013345, -0.05600267, -0.01183162,  0.03720168, -0.03496955,  0.00849757,  0.04060607, -0.00453819,  0.01200958],
+      [-0.01124391, -0.00048973, -0.02331613,  0.0014097 ,  0.02444862, 0.00629537,  0.00665833,  0.04085272,  0.02589211, -0.00856372, 0.00892602,  0.01718839],
+      [-0.0017736 , -0.01663471, -0.02570414, -0.00663515,  0.01400947, -0.01148814,  0.00455466,  0.0396596 , -0.00225027, -0.00211916, 0.00767346,  0.0158262 ],
+      [ 0.02744786, -0.01307196, -0.00086569, -0.01732965, -0.028969  , -0.01010476, -0.00684268,  0.00211261,  0.01853571, -0.00098844, -0.01809414, -0.02249732],
+      [-0.00786016,  0.03464515,  0.01503417,  0.02854525,  0.03474362, 0.02849651, -0.05117144, -0.03552481, -0.03347181, -0.02302888, -0.01148592, -0.02255699],
+      [-0.01889138, -0.00352634,  0.01225547,  0.01050122,  0.02901801, -0.01708262,  0.00175261,  0.03198801,  0.02164733, -0.02850526, -0.00204722,  0.00837268],
+      [ 0.00837455, -0.02069362,  0.00296988, -0.00099411, -0.06394753, -0.01783585,  0.02700479, -0.03261083,  0.00599106,  0.03857869, -0.00876447,  0.0109065 ],
+      [-0.00093434,  0.00531568, -0.01246633, -0.00167441,  0.01266372, -0.00013568,  0.01019727,  0.03119446,  0.01213548, -0.02097596, 0.0144362 ,  0.00417875],
+      [-0.00865544,  0.04386654,  0.02371013,  0.02565175,  0.05620646, 0.04471957, -0.05959622, -0.05416647, -0.05703549, -0.01352266, -0.02225529, -0.04912303]
     ];
 
     const FST_DIVISOR = 100.076489495;
@@ -128,7 +127,6 @@
     const fstResultsEl = document.getElementById('fstResults');
     const calcBtn = document.getElementById('calcBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const reloadBtn = document.getElementById('reloadBtn');
 
     // Input alanlarını oluştur
     labels.forEach((labelText, i) => {
@@ -160,7 +158,7 @@
       
       for (let i = 0; i < 12; i++) {
         for (let j = 0; j < 12; j++) {
-          result[i] += vector[j] * FST_TRANSFORMATION_MATRIX[j][i];
+          result[i] += vector[j] * FST_TRANSFORMATION_MATRIX[i][j];
         }
         result[i] /= FST_DIVISOR;
       }
@@ -177,10 +175,10 @@
       return Math.sqrt(s);
     }
 
-    async function loadDataset(forceReload = false) {
+    async function loadDataset() {
       try {
-        // Cache busting için timestamp ekle
-        const timestamp = forceReload ? `?t=${Date.now()}` : '';
+        // Her seferinde timestamp ekleyerek cache'i bypass et
+        const timestamp = `?t=${Date.now()}`;
         const res = await fetch(`Dodecad_k12b_Averages.txt${timestamp}`);
         
         if (!res.ok) throw new Error(`Dosya yüklenemedi: ${res.status}`);
@@ -233,8 +231,6 @@
       return isValid;
     }
 
-    let datasetPromise = null;
-
     calcBtn.addEventListener('click', async () => {
       if (!validateInputs()) {
         neighborsEl.innerHTML = '<div style="color:#b91c1c">Lütfen kutucuklara 0-100 arasında geçerli sayılar giriniz.</div>';
@@ -248,8 +244,8 @@
       calcBtn.textContent = 'Hesaplanıyor...';
       
       try {
-        if (!datasetPromise) datasetPromise = loadDataset();
-        const dataset = await datasetPromise;
+        // Her hesaplamada yeni veri seti yükle (cache bypass ile)
+        const dataset = await loadDataset();
 
         if (dataset.length === 0) {
           neighborsEl.innerHTML = '<div style="color:#b91c1c">Veri seti yüklenemedi veya boş.</div>';
@@ -290,7 +286,7 @@
         let fstHtml = `<strong>FST Sonuçları - En yakın ${outputCount}</strong>`;
         fstHtml += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>FST Mesafe</th></tr></thead><tbody>';
         fstResults.slice(0, outputCount).forEach((item, idx) => {
-          fstHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(3)}</td></tr>`;
+          fstHtml += `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.distance.toFixed(6)}</td></tr>`;
         });
         fstHtml += '</tbody></table>';
         fstResultsEl.innerHTML = fstHtml;
@@ -303,21 +299,6 @@
       } finally {
         calcBtn.disabled = false;
         calcBtn.textContent = 'Hesapla';
-      }
-    });
-
-    // Yeni: Verileri yeniden yükle butonu
-    reloadBtn.addEventListener('click', async () => {
-      datasetPromise = null;
-      neighborsEl.innerHTML = '<div style="color:#3b82f6">Veriler yeniden yükleniyor...</div>';
-      fstResultsEl.innerHTML = '';
-      
-      try {
-        datasetPromise = loadDataset(true);
-        const dataset = await datasetPromise;
-        neighborsEl.innerHTML = `<div style="color:#10b981">Veriler başarıyla yeniden yüklendi! ${dataset.length} popülasyon hazır.</div>`;
-      } catch (error) {
-        neighborsEl.innerHTML = `<div style="color:#b91c1c">Veriler yeniden yüklenirken hata: ${error.message}</div>`;
       }
     });
 
