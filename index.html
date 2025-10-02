@@ -81,6 +81,7 @@
       <div class="controls">
         <button id="calcBtn">Hesapla</button>
         <button id="clearBtn" class="secondary" type="button">Temizle</button>
+        <button id="reloadBtn" class="secondary" type="button">Verileri Yenile</button>
       </div>
 
       <div class="neighbors" id="neighbors"></div>
@@ -127,8 +128,9 @@
     const fstResultsEl = document.getElementById('fstResults');
     const calcBtn = document.getElementById('calcBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
 
-    // Input alanlarını oluştur (sadece placeholder, label yok)
+    // Input alanlarını oluştur
     labels.forEach((labelText, i) => {
       const field = document.createElement('div');
       field.className = 'field';
@@ -175,12 +177,17 @@
       return Math.sqrt(s);
     }
 
-    async function loadDataset() {
+    async function loadDataset(forceReload = false) {
       try {
-        const res = await fetch('Dodecad_k12b_Averages.txt');
+        // Cache busting için timestamp ekle
+        const timestamp = forceReload ? `?t=${Date.now()}` : '';
+        const res = await fetch(`Dodecad_k12b_Averages.txt${timestamp}`);
+        
         if (!res.ok) throw new Error(`Dosya yüklenemedi: ${res.status}`);
         const text = await res.text();
         const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        
+        console.log(`Yüklenen veri seti satır sayısı: ${lines.length}`);
         
         return lines.map(line => {
           const parts = line.split(',').map(s => s.trim());
@@ -190,8 +197,8 @@
           
           return { 
             name, 
-            vector: originalVector, // Orijinal vektör (normal mesafe için)
-            fstVector: fstVector    // FST transform edilmiş vektör
+            vector: originalVector,
+            fstVector: fstVector
           };
         });
       } catch (error) {
@@ -211,7 +218,6 @@
         const raw = inp.value;
         const v = parseNumberRaw(raw);
         
-        // 0-100 aralığı kontrolü
         if (Number.isNaN(v) || v < 0 || v > 100) {
           inp.classList.add('invalid');
           isValid = false;
@@ -220,7 +226,6 @@
         }
       });
       
-      // Toplam %100'e yakın mı kontrol et
       if (isValid && Math.abs(total - 100) > 1) {
         neighborsEl.innerHTML = `<div style="color:#ca8a04">Uyarı: Değerlerin toplamı %${total.toFixed(2)}. Genellikle %100'e yakın olmalı.</div>`;
       }
@@ -239,7 +244,6 @@
 
       const outputCount = parseInt(document.getElementById('outputCount').value, 10) || 20;
 
-      // Yükleme durumu
       calcBtn.disabled = true;
       calcBtn.textContent = 'Hesaplanıyor...';
       
@@ -253,27 +257,28 @@
           return;
         }
 
+        console.log(`Hesaplama için ${dataset.length} popülasyon kullanılıyor`);
+
         const inputs = Array.from(document.querySelectorAll('#inputs input'));
         const originalValues = inputs.map(inp => parseNumberRaw(inp.value));
         
-        // Kullanıcı input'unu FST transform et
         const userFstVector = transformVectorFST(originalValues);
 
-        // Normal mesafe hesaplama (orijinal vektörlerle)
+        // Normal mesafe hesaplama
         const normalResults = dataset.map(row => ({
           name: row.name,
           distance: euclidean(originalValues, row.vector)
         }));
         normalResults.sort((a, b) => a.distance - b.distance);
 
-        // FST mesafe hesaplama (transform edilmiş vektörlerle)
+        // FST mesafe hesaplama
         const fstResults = dataset.map(row => ({
           name: row.name,
           distance: euclidean(userFstVector, row.fstVector)
         }));
         fstResults.sort((a, b) => a.distance - b.distance);
 
-        // Normal sonuçları göster
+        // Sonuçları göster
         let normalHtml = `<strong>En yakın ${outputCount} (Normal)</strong>`;
         normalHtml += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>Mesafe</th></tr></thead><tbody>';
         normalResults.slice(0, outputCount).forEach((item, idx) => {
@@ -282,7 +287,6 @@
         normalHtml += '</tbody></table>';
         neighborsEl.innerHTML = normalHtml;
 
-        // FST sonuçlarını göster
         let fstHtml = `<strong>FST Sonuçları - En yakın ${outputCount}</strong>`;
         fstHtml += '<table><thead><tr><th>#</th><th>Popülasyon</th><th>FST Mesafe</th></tr></thead><tbody>';
         fstResults.slice(0, outputCount).forEach((item, idx) => {
@@ -291,7 +295,6 @@
         fstHtml += '</tbody></table>';
         fstResultsEl.innerHTML = fstHtml;
 
-        // Girilen değerleri kaydet
         saveInputs();
         
       } catch (error) {
@@ -303,6 +306,21 @@
       }
     });
 
+    // Yeni: Verileri yeniden yükle butonu
+    reloadBtn.addEventListener('click', async () => {
+      datasetPromise = null;
+      neighborsEl.innerHTML = '<div style="color:#3b82f6">Veriler yeniden yükleniyor...</div>';
+      fstResultsEl.innerHTML = '';
+      
+      try {
+        datasetPromise = loadDataset(true);
+        const dataset = await datasetPromise;
+        neighborsEl.innerHTML = `<div style="color:#10b981">Veriler başarıyla yeniden yüklendi! ${dataset.length} popülasyon hazır.</div>`;
+      } catch (error) {
+        neighborsEl.innerHTML = `<div style="color:#b91c1c">Veriler yeniden yüklenirken hata: ${error.message}</div>`;
+      }
+    });
+
     clearBtn.addEventListener('click', () => {
       document.querySelectorAll('#inputs input').forEach(i => { i.value = ''; i.classList.remove('invalid'); });
       document.getElementById('outputCount').value = 20;
@@ -311,7 +329,6 @@
       localStorage.removeItem('dodecadInputs');
     });
 
-    // LocalStorage ile veri saklama
     function saveInputs() {
       const inputs = Array.from(document.querySelectorAll('#inputs input'));
       const values = inputs.map(input => input.value);
@@ -333,21 +350,18 @@
       }
     }
 
-    // Klavye desteği
     inputsEl.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         calcBtn.click();
       }
     });
 
-    // Input değişikliklerinde otomatik validasyon
     document.querySelectorAll('#inputs input').forEach(input => {
       input.addEventListener('input', () => {
         input.classList.remove('invalid');
       });
     });
 
-    // Sayfa yüklendiğinde kayıtlı verileri yükle
     document.addEventListener('DOMContentLoaded', loadSavedInputs);
   </script>
 </body>
