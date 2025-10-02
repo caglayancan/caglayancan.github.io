@@ -67,7 +67,7 @@
 </head>
 <body>
   <main class="card">
-    <h1>En Yakın Popülasyonlar</h1>
+    <h1>En Yakın Popülasyonlarr</h1>
     <p class="lead">Dodecad-k12b değerlerini ilgili kutucuklara girin ve "Hesapla" tuşuna basın. Program güncel popülasyon ortalamalarına göre en yakın sonuçları gösterecek.</p>
 
     <form id="numbersForm" onsubmit="return false;">
@@ -160,7 +160,7 @@
       
       for (let i = 0; i < 12; i++) {
         for (let j = 0; j < 12; j++) {
-          result[i] += vector[j] * FST_TRANSFORMATION_MATRIX[i][j];
+          result[i] += vector[j] * FST_TRANSFORMATION_MATRIX[j][i];
         }
         result[i] /= FST_DIVISOR;
       }
